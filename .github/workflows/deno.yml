@@ -1,25 +1,25 @@
-
 name: Deploy to Amazon ECS
 
 on:
   push:
     branches:
       - main
+# permissions:
+#     id-token: write
+#     contents: read
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest
-    environment: production
+    runs-on: ubuntu-latest  
     permissions:
       id-token: write
       contents: read
-  
     steps:
       - name: Checkout
         uses: actions/checkout@v3
       
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v1.7.0
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-region: ap-northeast-1
           role-to-assume: arn:aws:iam::430334909132:role/msi-oidc-role
@@ -27,3 +27,34 @@ jobs:
       - name: Sts GetCallerIdentity
         run: |
           aws sts get-caller-identity
+    
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+      
+      # # app build 
+      # - name: Docker build and push
+      #   id: build-image-app
+      #   env:
+      #     ECR_REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
+      #     ECR_REPOSITORY: msi-be
+      #     IMAGE_TAG: ${{ github.sha }}
+      #   run: |
+      #     docker build -f ./docker/servers/backend/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
+      #     docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+      #     echo NEW_IMAGE=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG >> $GITHUB_ENV
+
+      - name: Get Revision
+        uses: sergeysova/jq-action@v2
+        id: get-task-def-be-revision
+        with:
+          cmd: 'aws ecs describe-task-definition --task-definition msi-be-task-def --region ap-northeast-1 | jq .taskDefinition.revision'
+
+      # Debug
+      - name: Debug jq
+        run: 'echo "version ${{ steps.get-task-def-be-revision.outputs.value }}"' 
+
+      # # Update ECS Service
+      # - name: Force deployment
+      #   run: |
+      #     aws ecs update-service --force-new-deployment --cluster $CLUSTER_NAME --service $SERVICE_NAME_BE --task-definition $TASK_DEFINITION_NAME_BE:${{ steps.get-task-def-be-revision.outputs.value }} --desired-count 1 
