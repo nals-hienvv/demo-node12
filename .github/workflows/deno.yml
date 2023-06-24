@@ -53,7 +53,7 @@ jobs:
       # Debug
       - name: get version
         run: |
-          rev= `aws ecs describe-task-definition --task-definition msi-be-task-def --region ap-northeast-1 | jq .taskDefinition.revision`
+          rev=`aws ecs describe-task-definition --task-definition msi-be-task-def --region ap-northeast-1 | jq .taskDefinition.revision`
           echo $rev 
 
       # # Update ECS Service
