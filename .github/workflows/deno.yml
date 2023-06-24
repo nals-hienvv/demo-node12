@@ -52,4 +52,4 @@ jobs:
       # Update ECS Service
       - name: Force deployment
         run: |
-          aws ecs update-service --force-new-deployment --cluster $CLUSTER_NAME --service $SERVICE_NAME_BE --task-definition $TASK_DEFINITION_NAME_BE:${{ env.REVISION_BE }} --desired-count 1 
+          aws ecs update-service --force-new-deployment --cluster msi-cluster --service msi-be-service --task-definition msi-be-task-def:${{ env.REVISION_BE }} --desired-count 1 
