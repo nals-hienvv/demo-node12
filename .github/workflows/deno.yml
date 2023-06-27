@@ -1,61 +1,28 @@
-# name: Backend Deploy to Amazon ECS 
-
-# on:
-#   workflow_dispatch:
-#   push:
-#     branches:
-#       - main
-
-# env:
-#   ENV_NAME: dev
-#   AWS_ROLE_ARN: ${{ secrets.DEV_AWS_ROLE_ARN }}
-#   AWS_DEFAULT_REGION: ${{ secrets.DEV_AWS_REGION }}
-#   AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
-#   AWS_ROLE_NAME: ${{ secrets.AWS_ROLE_NAME }}
-
-
-# jobs:
-#   deploy:
-#     name: Deploy
-#     runs-on: ubuntu-latest
-#     timeout-minutes: 10  
-#     permissions:
-#       id-token: write
-#       contents: read
-  
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v3
-      
-#       - name: debug
-#         run: |
-#           echo "${{ secrets.DEV_AWS_ROLE_ARN }}"
-#           echo "${{ secrets.DEV_AWS_REGION }}"
-#           echo "${{ env.AWS_REGION }}"
-      
-#       - name: Configure AWS Credentials
-#         uses: aws-actions/configure-aws-credentials@v2
-#         with:
-#           aws-region: ${{ env.AWS_REGION }}
-#           role-to-assume: ${{ env.AWS_ROLE_ARN }}
-#           role-session-name: ${{ env.AWS_ROLE_NAME }}
-
-name: Deploy to Amazon ECS
+name: Backend Deploy to Amazon ECS 
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
-permissions:
-    id-token: write
-    contents: read
+
+env:
+  ENV_NAME: dev
+  AWS_ROLE_ARN: ${{ secrets.DEV_AWS_ROLE_ARN }}
+  AWS_DEFAULT_REGION: ${{ secrets.DEV_AWS_REGION }}
+  AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
+  AWS_ROLE_NAME: ${{ secrets.AWS_ROLE_NAME }}
+
+
 jobs:
   deploy:
     name: Deploy
-    runs-on: ubuntu-latest  
-    # permissions:
-    #   id-token: write
-    #   contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10  
+    permissions:
+      id-token: write
+      contents: read
+  
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -63,13 +30,9 @@ jobs:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          aws-region: ap-northeast-1
-          role-to-assume: arn:aws:iam::430334909132:role/msi-oidc-role
-          role-session-name: msi-oidc-role
-      
-      - name: Sts GetCallerIdentity
-        run: |
-          aws sts get-caller-identity
+          aws-region: ${{ env.AWS_REGION }}
+          role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: ${{ env.AWS_ROLE_NAME }}
     
       - name: Login to Amazon ECR
         id: login-ecr-dev
@@ -98,9 +61,9 @@ jobs:
         run: |
           aws ecs update-service --force-new-deployment --cluster msi-cluster --service msi-be-service --task-definition msi-be-task-def:${{ env.REVISION_BE }} --desired-count 1 --region ap-northeast-1
 
-      - name: Wait for service update to stabilize
-        run: |
-          aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
+      # - name: Wait for service update to stabilize
+      #   run: |
+      #     aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
 
 
       - name: Send notification to Slack
