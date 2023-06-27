@@ -11,6 +11,8 @@ env:
   AWS_ROLE_ARN: ${{ secrets.DEV_AWS_ROLE_ARN }}
   AWS_DEFAULT_REGION: ${{ secrets.DEV_AWS_REGION }}
   AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
+  AWS_ROLE_NAME: ${{ secrets.AWS_ROLE_NAME }}
+
 
 jobs:
   deploy:
@@ -36,6 +38,8 @@ jobs:
         with:
           aws-region: ${{ env.AWS_REGION }}
           role-to-assume: ${{ env.AWS_ROLE_ARN }}
+          role-session-name: ${{ env.AWS_ROLE_NAME }}
+
     
       - name: Login to Amazon ECR
         id: login-ecr-dev
