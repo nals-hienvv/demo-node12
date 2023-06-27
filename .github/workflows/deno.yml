@@ -68,9 +68,9 @@ jobs:
 
       - name: Send notification to Slack
         run: |
-          successText=":octocat: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* completed successfully."
-          failureText=":octocat: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* failed."
-          cancelledText=":octocat: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* was cancelled.😥"
+          successText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* completed successfully."
+          failureText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* failed."
+          cancelledText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* was cancelled.😥"
           status="${{ (contains(needs.*.result, 'cancelled') && 'cancelled') || (contains(needs.*.result, 'failure') && 'failure') || 'success' }}"
 
           if [ "$status" = 'success' ]; then
