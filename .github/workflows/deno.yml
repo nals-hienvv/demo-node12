@@ -12,7 +12,10 @@ env:
   AWS_DEFAULT_REGION: ${{ secrets.DEV_AWS_REGION }}
   AWS_REGION: ${{ secrets.DEV_AWS_REGION }}
   AWS_ROLE_NAME: ${{ secrets.AWS_ROLE_NAME }}
-
+  ECR_REPOSITORY: msi-be
+  ECS_CLUSTER: msi-cluster
+  ECS_SERVICE: msi-be-service
+  ECS_TASK: msi-be-task-def
 
 jobs:
   deploy:
@@ -43,7 +46,7 @@ jobs:
       #   id: build-image-app
       #   env:
       #     ECR_REGISTRY: ${{ steps.login-ecr-dev.outputs.registry }}
-      #     ECR_REPOSITORY: msi-be
+      #     ECR_REPOSITORY: ${{ env.ECR_REPOSITORY }}
       #     IMAGE_TAG: ${{ github.sha }}
       #   run: |
       #     docker build -f ./docker/servers/backend/Dockerfile -t $ECR_REGISTRY/$ECR_REPOSITORY:latest ./
@@ -52,8 +55,10 @@ jobs:
 
       # get latest revision of TaskDefinition
       - name: get version
+        env:
+          ECS_TASK: ${{ env.ECS_TASK }}
         run: |
-          rev=`aws ecs describe-task-definition --task-definition msi-be-task-def --region ap-northeast-1 | jq .taskDefinition.revision`
+          rev=`aws ecs describe-task-definition --task-definition $ECS_TASK | jq .taskDefinition.revision`
           echo REVISION_BE=$rev >> $GITHUB_ENV
       
       # update ECS Service
@@ -66,12 +71,16 @@ jobs:
 
       # update ECS Service
       - name: Force deployment
+        env:
+          ECS_CLUSTER: ${{ env.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ env.ECS_SERVICE }}
+          ECS_TASK: ${{ env.ECS_TASK }}
         run: |
-          aws ecs update-service --force-new-deployment --cluster msi-cluster --service msi-be-service --task-definition msi-be-task-def:${{ env.REVISION_BE }} --desired-count 1 --region ap-northeast-1
+          aws ecs update-service --force-new-deployment --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $ECS_TASK:${{ env.REVISION_BE }} --desired-count 1 
 
-      - name: Wait for service update to stabilize
-        run: |
-          aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
+      # - name: Wait for service update to stabilize
+      #   run: |
+      #     aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
 
 
       # - name: Send notification to Slack
