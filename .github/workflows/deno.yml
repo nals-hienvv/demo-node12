@@ -78,31 +78,26 @@ jobs:
         run: |
           aws ecs update-service --force-new-deployment --cluster $ECS_CLUSTER --service $ECS_SERVICE --task-definition $ECS_TASK:${{ env.REVISION_BE }} --desired-count 1 
 
-      # - name: Wait for service update to stabilize
-      #   run: |
-      #     aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
+      - name: Send notification to Slack
+        run: |
+          successText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* from Pull Request *${{ github.event.pull_request.title }}* by *${{ github.actor }}* completed successfully."
+          failureText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* from Pull Request *${{ github.event.pull_request.title }}* by *${{ github.actor }}* failed."
+          cancelledText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* from Pull Request *${{ github.event.pull_request.title }}* by *${{ github.actor }}* was cancelled.😥"
+          status="${{ (contains(needs.*.result, 'cancelled') && 'cancelled') || (contains(needs.*.result, 'failure') && 'failure') || 'success' }}"
 
+          if [ "$status" = 'success' ]; then
+          color='good'
+          text=$successText
+          elif [ "$status" = 'failure' ]; then
+          color='danger'
+          text=$failureText
+          elif [ "$status" = "cancelled" ]; then
+            color='warning'
+            text=$cancelledText
+          fi
 
-      # - name: Send notification to Slack
-      #   run: |
-      #     successText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* completed successfully."
-      #     failureText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* failed."
-      #     cancelledText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}* by *${{ github.actor }}* was cancelled.😥"
-      #     status="${{ (contains(needs.*.result, 'cancelled') && 'cancelled') || (contains(needs.*.result, 'failure') && 'failure') || 'success' }}"
-
-      #     if [ "$status" = 'success' ]; then
-      #     color='good'
-      #     text=$successText
-      #     elif [ "$status" = 'failure' ]; then
-      #     color='danger'
-      #     text=$failureText
-      #     elif [ "$status" = "cancelled" ]; then
-      #       color='warning'
-      #       text=$cancelledText
-      #     fi
-
-      #     echo "{attachments: [{text: \"$text\", color: \"$color\"}]}" | curl \
-      #       "${{ secrets.SLACK_WEBHOOK_URL }}" \
-      #       -X "POST" \
-      #       --header "Content-Type: application/json" \
-      #       --data-binary @-                   
+          echo "{attachments: [{text: \"$text\", color: \"$color\"}]}" | curl \
+            "${{ secrets.SLACK_WEBHOOK_URL }}" \
+            -X "POST" \
+            --header "Content-Type: application/json" \
+            --data-binary @-                   
