@@ -57,16 +57,16 @@ jobs:
           echo REVISION_BE=$rev >> $GITHUB_ENV
       
       # update ECS Service
-      - name: Force deployment
-        run: |
-          container_list=`aws ecs list-tasks --region ap-northeast-1 --cluster msi-cluster --service-name msi-be-service | awk '/msi-cluster/ {print}' | sed 's/,$//' | awk '{ sub(/^[ \t]+/, ""); print }' | awk '{printf "%s ",$0} END {print ""}'| sed -e 's/^"//' -e 's/" $//'`
-          echo $container_list
-          aws ecs update-service --force-new-deployment --cluster msi-cluster --service msi-be-service --task-definition msi-be-task-def:${{ env.REVISION_BE }} --desired-count 1 --region ap-northeast-1
-          aws ecs wait tasks-stopped --cluster msi-cluster --tasks $container_list
-
-      # - name: Wait for service update to stabilize
+      # - name: Force deployment
       #   run: |
-      #     aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
+      #     container_list=`aws ecs list-tasks --region ap-northeast-1 --cluster msi-cluster --service-name msi-be-service | awk '/msi-cluster/ {print}' | sed 's/,$//' | awk '{ sub(/^[ \t]+/, ""); print }' | awk '{printf "%s ",$0} END {print ""}'| sed -e 's/^"//' -e 's/" $//'`
+      #     echo $container_list
+      #     aws ecs update-service --force-new-deployment --cluster msi-cluster --service msi-be-service --task-definition msi-be-task-def:${{ env.REVISION_BE }} --desired-count 1 --region ap-northeast-1
+      #     aws ecs wait tasks-stopped --cluster msi-cluster --tasks $container_list
+
+      - name: Wait for service update to stabilize
+        run: |
+          aws ecs wait services-stable --cluster  msi-cluster --services msi-be-service --region ap-northeast-1
 
 
       # - name: Send notification to Slack
