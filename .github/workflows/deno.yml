@@ -80,9 +80,9 @@ jobs:
 
       - name: Send notification to Slack
         run: |
-          successText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@{{ github.ref }} with commit SHA *${{ github.sha }}* completed successfully."
-          failureText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@{{ github.ref }} with commit SHA *${{ github.sha }}* failed."
-          cancelledText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@{{ github.ref }} with commit SHA *${{ github.sha }}* was cancelled.😥"
+          successText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@${{ github.ref }} with commit SHA *${{ github.sha }}* completed successfully."
+          failureText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@${{ github.ref }} with commit SHA *${{ github.sha }}* failed."
+          cancelledText=":github: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Build #${{ github.run_number }}> of *${{ github.repository }}@${{ github.ref_name }}*@${{ github.ref }} with commit SHA *${{ github.sha }}* was cancelled.😥"
           status="${{ (contains(needs.*.result, 'cancelled') && 'cancelled') || (contains(needs.*.result, 'failure') && 'failure') || 'success' }}"
 
           if [ "$status" = 'success' ]; then
